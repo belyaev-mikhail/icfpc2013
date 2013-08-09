@@ -1,0 +1,30 @@
+#ifndef HANDLE_TERM
+#define INCLUDE_MODE
+#endif
+
+#ifdef INCLUDE_MODE
+#undef INCLUDE_MODE
+
+#include "Term/ArgumentTerm.h"
+#include "Term/BinaryTerm.h"
+#include "Term/FoldTerm.h"
+#include "Term/LambdaTerm.h"
+#include "Term/OpaqueIntConstantTerm.h"
+#include "Term/TernaryTerm.h"
+#include "Term/UnaryTerm.h"
+
+#define HANDLE_TERM(NAME, CLASS)
+
+#endif
+
+HANDLE_TERM(Argument, ArgumentTerm)
+HANDLE_TERM(Binary, BinaryTerm)
+HANDLE_TERM(Fold, FoldTerm)
+HANDLE_TERM(Lambda, LambdaTerm)
+HANDLE_TERM(OpaqueIntConstant, OpaqueIntConstantTerm)
+HANDLE_TERM(Ternary, TernaryTerm)
+HANDLE_TERM(Unary, UnaryTerm)
+
+#ifdef HANDLE_TERM
+#undef HANDLE_TERM
+#endif

@@ -1,0 +1,21 @@
+syntax: glob
+
+*.o
+*.a
+*.d
+*.gch
+.*
+*.log
+*.pyc
+
+wrapper
+run-tests
+
+Protobuf/Gen/*
+*.proto
+
+*.xml
+*.tmp
+*.all
+
+*.png
