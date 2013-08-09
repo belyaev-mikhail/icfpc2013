@@ -9,7 +9,6 @@
 #include <log4cpp/CategoryStream.hh>
 #include <log4cpp/Priority.hh>
 #include <log4cpp/PropertyConfigurator.hh>
-#include <z3/z3++.h>
 
 #include "Logging/logstream.hpp"
 
@@ -66,11 +65,6 @@ stream_t logsFor(PriorityLevel lvl, const std::string& category) {
 
 void configureLoggingFacility(const std::string& filename) {
     PropertyConfigurator::configure(filename);
-}
-
-void configureZ3Log(const std::string& filename) {
-    Z3_open_log(filename.c_str());
-    atexit(Z3_close_log);
 }
 
 stream_t& indent(stream_t& st) {

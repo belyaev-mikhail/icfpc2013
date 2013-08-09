@@ -252,6 +252,12 @@ Streamer& operator<<(Streamer& s, const std::vector<T>& vec) {
 }
 
 template<typename T, typename Streamer>
+Streamer& operator<<(Streamer& s, const std::list<T>& lst) {
+    typedef std::list<T> Container;
+    return containerPrettyPrinter< Container >::template doit<impl_::VECTOR_LEFT_BRACE, impl_::VECTOR_RIGHT_BRACE>(s, lst);
+}
+
+template<typename T, typename Streamer>
 Streamer& operator<<(Streamer& s, const std::set<T>& set) {
     typedef std::set<T> Container;
     return containerPrettyPrinter< Container >::template doit<impl_::SET_LEFT_BRACE, impl_::SET_RIGHT_BRACE>(s, set);

@@ -126,39 +126,16 @@ RUN_TEST_EXES := $(PWD)/$(TEST_EXES) \
 	--gtest_output="xml:$(TEST_OUTPUT)" \
 	--gtest_color=yes
 
-CLANGLIBS := \
-    -lclangFrontendTool \
-    -lclangFrontend \
-    -lclangDriver \
-    -lclangSerialization \
-    -lclangCodeGen \
-    -lclangParse \
-    -lclangSema \
-    -lclangStaticAnalyzerFrontend \
-    -lclangStaticAnalyzerCheckers \
-    -lclangStaticAnalyzerCore \
-    -lclangAnalysis \
-    -lclangARCMigrate \
-    -lclangRewrite \
-    -lclangEdit \
-    -lclangAST \
-    -lclangLex \
-    -lclangBasic
+CLANGLIBS := 
 
 LIBS := \
 	$(CLANGLIBS) \
-	-lz3 \
 	-ldl \
 	-lrt \
-	-lcfgparser \
-	-llog4cpp \
-	-lprofiler \
-	-ljsoncpp \
-	-lprotobuf \
-	-ltinyxml2 \
-	-lpthread \
 	-lcurlpp \
-	-lcurl
+	-lcurl \
+	-llog4cpp \
+	-ljsoncpp
 
 ################################################################################
 # Deps management
@@ -193,7 +170,7 @@ LIBS := \
 all: $(EXES)
 
 $(EXES): $(OBJECTS)
-	$(CXX) -g -o $@ -rdynamic $(OBJECTS) $(LIBS) $(LLVMLDFLAGS) $(LIBS)
+	$(CXX) -g -o $@ $(OBJECTS) $(LIBS) $(LLVMLDFLAGS) $(LIBS)
 
 .google-test:
 	$(MAKE) CXX=$(CXX) -C $(GOOGLE_TEST_DIR)/make gtest.a
