@@ -24,21 +24,24 @@ public:
     typedef std::shared_ptr<TermFactory> Ptr;
 
     Term::Ptr getArgumentTerm(unsigned char idx) {
-        return Term::Ptr{
-            new ArgumentTerm(idx)
-        };
+        static Term::Ptr arg0{ new ArgumentTerm(0) };
+        static Term::Ptr arg1{ new ArgumentTerm(1) };
+        static Term::Ptr arg2{ new ArgumentTerm(2) };
+
+        if (idx == 0) return arg0;
+        if (idx == 1) return arg1;
+        if (idx == 2) return arg2;
+        ASSERT(false, "Oops");
     }
 
     Term::Ptr getOne() {
-        return Term::Ptr{
-            new OpaqueIntConstantTerm(1)
-        };
+        static Term::Ptr one{ new OpaqueIntConstantTerm(1) };
+        return one;
     }
 
     Term::Ptr getZero() {
-        return Term::Ptr{
-            new OpaqueIntConstantTerm(0)
-        };
+        static Term::Ptr zero{ new OpaqueIntConstantTerm(0) };
+        return zero;
     }
 
     Term::Ptr getFoldTerm(Term::Ptr arg1, Term::Ptr arg2, Term::Ptr body) {
@@ -74,17 +77,35 @@ public:
     }
 
     Term::Ptr getUnaryTerm(UnaryArithType opc, Term::Ptr rhv) {
-        return Term::Ptr{
-            new UnaryTerm(
-                opc, rhv
-            )
+        static std::unordered_map<Term::Ptr, Term::Ptr> notMap;
+        static std::unordered_map<Term::Ptr, Term::Ptr> shl1Map;
+        static std::unordered_map<Term::Ptr, Term::Ptr> shr1Map;
+        static std::unordered_map<Term::Ptr, Term::Ptr> shr4Map;
+        static std::unordered_map<Term::Ptr, Term::Ptr> shr16Map;
+
+        static std::unordered_map<UnaryArithType, std::unordered_map<Term::Ptr, Term::Ptr>> cache{
+            {UnaryArithType::NOT,    notMap},
+            {UnaryArithType::SHL_1,  shl1Map},
+            {UnaryArithType::SHR_1,  shr1Map},
+            {UnaryArithType::SHR_4,  shr4Map},
+            {UnaryArithType::SHR_16, shr16Map}
         };
+
+        auto& map = cache.at(opc);
+        if (borealis::util::containsKey(map, rhv)) {
+            return map.at(rhv);
+        }
+
+        auto res = Term::Ptr{
+            new UnaryTerm(opc, rhv)
+        };
+        map[rhv] = res;
+        return res;
     }
 
     static TermFactory::Ptr get() {
-        return TermFactory::Ptr{
-            new TermFactory()
-        };
+        static TermFactory::Ptr instance(new TermFactory());
+        return instance;
     }
 
     static BV apply(Term::Ptr lambda, BV arg) {

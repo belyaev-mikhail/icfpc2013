@@ -67,6 +67,14 @@ public:
         return acc;
     }
 
+    virtual void registerComponents(std::set<std::string>& c) const override {
+        c.insert("fold"); // FIXME: tfold???
+
+        arg1->registerComponents(c);
+        arg2->registerComponents(c);
+        body->registerComponents(c);
+    }
+
     virtual unsigned char size() const override {
         return 2 + arg1->size() + arg2->size() + body->size();
     }

@@ -42,6 +42,10 @@ public:
         return 1 + body->size();
     }
 
+    virtual void registerComponents(std::set<std::string>& c) const override {
+        body->registerComponents(c);
+    }
+
     virtual bool equals(const Term* other) const override {
         if (const Self* that = llvm::dyn_cast_or_null<Self>(other)) {
             return Term::equals(other) &&

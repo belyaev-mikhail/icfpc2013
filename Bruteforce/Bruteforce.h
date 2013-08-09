@@ -42,9 +42,9 @@ public:
 private:
 
     Variants generate(size_t size) {
-        if (size < 1) return std::list<Term::Ptr>();
+        if (size < 1) return Variants();
 
-        if (size == 1) return std::list<Term::Ptr>{
+        if (size == 1) return Variants{
             TF->getZero(),
             TF->getOne(),
             TF->getArgumentTerm(0)
@@ -53,7 +53,7 @@ private:
         std::list<Term::Ptr> res;
         for (const auto& c : components) {
             auto subres = generateComponent(c, size);
-            res.splice(res.begin(), subres);
+            res.insert(res.begin(), subres.begin(), subres.end());
         }
         return res;
     }
@@ -77,47 +77,33 @@ private:
         } else if (borealis::util::containsKey(nameToBinary, name)) {
             auto type = nameToBinary.at(name);
 
-            Variants lhv;
-            Variants rhv;
             Variants vars;
 
             if (size <= 2) return vars;
 
-            for (size_t s = 1; s < size; ++s) {
-                auto l = generate(size - 1 - s);
-                auto r = generate(s);
-                lhv.splice(lhv.begin(), l);
-                rhv.splice(rhv.begin(), r);
-            }
+            for (size_t s = 0; s < size; ++s) {
+                auto lhv = generate(size - s - 1);
+                auto rhv = generate(s);
+                if (lhv.empty() || rhv.empty()) continue;
 
-            for (const auto& l : lhv) {
-                for (const auto& r : rhv) {
-                    vars.push_back(
-                        TF->getBinaryTerm(type, l, r)
-                    );
+                for (const auto& l : lhv) {
+                    for (const auto& r : rhv) {
+                        vars.push_back(
+                            TF->getBinaryTerm(type, l, r)
+                        );
+                    }
                 }
             }
+
             return vars;
+        } else {
+            ASSERT(false, "Oh shit...");
         }
     }
 
 public:
 
-    Bruteforcer(TermFactory::Ptr TF, const std::set<std::string>& components) :
-        TF(TF), components(components),
-        nameToUnary {
-            {"not",   UnaryArithType::NOT},
-            {"shl1",  UnaryArithType::SHL_1},
-            {"shr1",  UnaryArithType::SHR_1},
-            {"shr4",  UnaryArithType::SHR_4},
-            {"shr16", UnaryArithType::SHR_16}
-        },
-        nameToBinary {
-            {"and",  ArithType::AND},
-            {"or",   ArithType::OR},
-            {"xor",  ArithType::XOR},
-            {"plus", ArithType::PLUS}
-        } {};
+    Bruteforcer(TermFactory::Ptr TF, const std::set<std::string>& components);
 
 };
 

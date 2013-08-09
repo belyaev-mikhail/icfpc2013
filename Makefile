@@ -63,6 +63,7 @@ endif
 ################################################################################
 
 ADDITIONAL_SOURCE_DIRS := \
+	$(PWD)/Bruteforce \
 	$(PWD)/BV \
 	$(PWD)/Logging \
 	$(PWD)/REST \

@@ -93,6 +93,68 @@ TEST(Term, apply) {
         }
     }
 
+    {
+        auto TF = TermFactory::get();
+        REST rest(false);
+
+        auto lambda = TF->getLambdaTerm(
+            TF->getBinaryTerm(
+                ArithType::XOR,
+                TF->getBinaryTerm(
+                    ArithType::XOR,
+                    TF->getZero(),
+                    TF->getZero()
+                ),
+                TF->getZero()
+            )
+        );
+
+        std::vector<BV> args;
+        for (int i = 0; i < 256; ++i) {
+            args.push_back(random());
+        }
+
+        auto evalResponse = rest.getEvalByProgram(lambda, args);
+
+        for (int i = 0; i < 256; ++i) {
+            auto arg = args[i];
+            auto expected = evalResponse.outputs[i];
+            auto actual = TF->apply(lambda, arg);
+            ASSERT_EQ(expected, actual);
+        }
+    }
+
+    {
+        auto TF = TermFactory::get();
+        REST rest(false);
+
+        auto lambda = TF->getLambdaTerm(
+            TF->getBinaryTerm(
+                ArithType::XOR,
+                TF->getBinaryTerm(
+                    ArithType::XOR,
+                    TF->getZero(),
+                    TF->getZero()
+                ),
+                TF->getOne()
+            )
+        );
+
+        std::vector<BV> args;
+        for (int i = 0; i < 256; ++i) {
+            args.push_back(random());
+        }
+
+        auto evalResponse = rest.getEvalByProgram(lambda, args);
+
+        for (int i = 0; i < 256; ++i) {
+            auto arg = args[i];
+            auto expected = evalResponse.outputs[i];
+            auto actual = TF->apply(lambda, arg);
+            ASSERT_EQ(expected, actual);
+        }
+    }
+
 }
 
 } // namespace

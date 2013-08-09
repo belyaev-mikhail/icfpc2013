@@ -68,6 +68,18 @@ public:
         return 1 + rhv->size();
     }
 
+    virtual void registerComponents(std::set<std::string>& c) const override {
+        switch (opcode) {
+        case UnaryArithType::NOT:    c.insert("not");   break;
+        case UnaryArithType::SHL_1:  c.insert("shl1");  break;
+        case UnaryArithType::SHR_1:  c.insert("shr1");  break;
+        case UnaryArithType::SHR_4:  c.insert("shr4");  break;
+        case UnaryArithType::SHR_16: c.insert("shr16"); break;
+        }
+
+        rhv->registerComponents(c);
+    }
+
     virtual bool equals(const Term* other) const override {
         if (const Self* that = llvm::dyn_cast_or_null<Self>(other)) {
             return Term::equals(other) &&

@@ -52,6 +52,14 @@ public:
         return 1 + cnd->size() + tru->size() + fls->size();
     }
 
+    virtual void registerComponents(std::set<std::string>& c) const override {
+        c.insert("if0");
+
+        cnd->registerComponents(c);
+        tru->registerComponents(c);
+        fls->registerComponents(c);
+    }
+
     virtual bool equals(const Term* other) const override {
         if (const Self* that = llvm::dyn_cast_or_null<Self>(other)) {
             return Term::equals(other) &&

@@ -61,8 +61,9 @@ struct json_traits<T, GUARD(std::is_floating_point<T>::value)> {
     }
 
     static optional_ptr_t fromJson(const Json::Value& json) {
-        return json.isDouble() ? optional_ptr_t{ new T{json.asDouble()} } :
-                                 nullptr;
+        return json.isDouble() || json.isIntegral()
+               ? optional_ptr_t{ new T{json.asDouble()} }
+               : nullptr;
     }
 };
 

@@ -68,6 +68,18 @@ public:
         return 1 + lhv->size() + rhv->size();
     }
 
+    virtual void registerComponents(std::set<std::string>& c) const override {
+        switch (opcode) {
+        case ArithType::AND:  c.insert("and");  break;
+        case ArithType::OR:   c.insert("or");   break;
+        case ArithType::XOR:  c.insert("xor");  break;
+        case ArithType::PLUS: c.insert("plus"); break;
+        }
+
+        lhv->registerComponents(c);
+        rhv->registerComponents(c);
+    }
+
     virtual bool equals(const Term* other) const override {
         if (const Self* that = llvm::dyn_cast_or_null<Self>(other)) {
             return Term::equals(other) &&
