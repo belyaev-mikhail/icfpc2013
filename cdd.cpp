@@ -20,21 +20,36 @@ int main(int argc, const char** argv) {
     using namespace borealis;
 
     REST rest;
+    std::vector<Problem> problems;
 
-    auto problems = rest.getProblems();
+    if (argc == 1) {
+        problems = rest.getProblems();
+        sleep(20);
+    } else {
+        Problem p;
 
-    sleep(20);
+        p.solved = false;
+        p.timeLeft = 300.0;
+
+        p.id = argv[1];
+        std::istringstream iss(argv[2]);
+        iss >> p.size;
+        for (size_t i = 3; i < argc; ++i) {
+            p.operators.insert(argv[i]);
+        }
+
+        problems.push_back(p);
+    }
 
     for (const auto& problem : problems) {
 
         std::cout << problem << std::endl;
 
-        if (problem.size > 8) continue;
+        if (problem.size > 12) continue;
         if (problem.solved) continue;
         if (problem.timeLeft <= 0.5) continue;
         if (borealis::util::contains(problem.operators, "if0") ||
-            borealis::util::contains(problem.operators, "fold") ||
-            borealis::util::contains(problem.operators, "tfold")) continue;
+            borealis::util::contains(problem.operators, "fold")) continue;
 
         auto id = problem.id;
         size_t size = problem.size;

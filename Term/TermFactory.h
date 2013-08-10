@@ -52,6 +52,14 @@ public:
         };
     }
 
+    Term::Ptr getTFoldTerm(Term::Ptr arg1, Term::Ptr arg2, Term::Ptr body) {
+        return Term::Ptr{
+            new FoldTerm(
+                arg1, arg2, body, "tfold"
+            )
+        };
+    }
+
     Term::Ptr getLambdaTerm(Term::Ptr body) {
         return Term::Ptr{
             new LambdaTerm(

@@ -21,8 +21,32 @@ namespace borealis {
 class Bruteforcer {
 
     TermFactory::Ptr TF;
+
     std::set<std::string> components;
-    std::set<std::string> currentComponents;
+    int totalSize;
+
+    std::list<std::string> currentComponents;
+    int sizeLeft() {
+        std::set<std::string> curr(currentComponents.begin(), currentComponents.end());
+
+        std::vector<std::string> diff;
+        std::set_difference(
+            components.begin(), components.end(),
+            curr.begin(), curr.end(),
+            std::back_inserter(diff)
+        );
+
+        int res;
+        for (const auto& d : diff) {
+            if ("tfold" == d || "fold" == d) res += 2;
+            else res += 1;
+        }
+        return res;
+    }
+
+    bool hasTFold;
+
+    bool inFold;
 
     typedef std::list<Term::Ptr> Variants;
 
@@ -31,8 +55,17 @@ class Bruteforcer {
 
 public:
 
-    Variants doit(size_t size) {
-        auto subres = generate(size - 1);
+    Variants doit(int size) {
+
+        Variants subres;
+
+        if (hasTFold) {
+            currentComponents.push_back("tfold");
+            subres = generateComponent("tfold", size - 1);
+            currentComponents.pop_back();
+        } else {
+            subres = generate(size - 1);
+        }
 
         Variants vars;
         std::transform(subres.begin(), subres.end(), std::back_inserter(vars),
@@ -43,31 +76,38 @@ public:
 
 private:
 
-    Variants generate(size_t size) {
+    Variants generate(int size) {
         if (size < 1) return Variants();
 
-        if (size <= currentComponents.size()) return Variants();
+        if (size == 1) {
+            return inFold ? Variants{
+                TF->getZero(),
+                TF->getOne(),
+                TF->getArgumentTerm(0),
+                TF->getArgumentTerm(1),
+                TF->getArgumentTerm(2)
+            } : Variants{
+                TF->getZero(),
+                TF->getOne(),
+                TF->getArgumentTerm(0)
+            };
+        }
 
-        if (size == 1) return Variants{
-            TF->getZero(),
-            TF->getOne(),
-            TF->getArgumentTerm(0)
-        };
+        // if (sizeLeft() >= size) return Variants();
 
         std::list<Term::Ptr> res;
         for (const auto& c : components) {
-            currentComponents.insert(c);
+            currentComponents.push_back(c);
             auto subres = generateComponent(c, size);
-            currentComponents.erase(c);
+            currentComponents.pop_back();
 
-            res.insert(res.begin(), subres.begin(), subres.end());
+            res.splice(res.begin(), subres);
         }
         return res;
     }
 
-    Variants generateComponent(const std::string& name, size_t size) {
-        if ("if0" == name ||
-            "fold" == name) {
+    Variants generateComponent(const std::string& name, int size) {
+        if ("if0" == name || "fold" == name) {
             ASSERT(false, "Fuck off!");
 
         } else if (borealis::util::containsKey(nameToUnary, name)) {
@@ -86,12 +126,16 @@ private:
 
             Variants vars;
 
-            if (size <= 2) return vars;
+            // min: 1 + 1 + 1 = 3
+            if (size < 3) return vars;
 
-            for (size_t s = 0; s < size; ++s) {
-                auto lhv = generate(size - s - 1);
-                auto rhv = generate(s);
-                if (lhv.empty() || rhv.empty()) continue;
+            for (auto arg0s = 1; arg0s < size; ++arg0s) {
+                auto arg1s = size - arg0s - 1;
+
+                if (arg1s <= 0) continue;
+
+                auto lhv = generate(arg0s);
+                auto rhv = generate(arg1s);
 
                 for (const auto& l : lhv) {
                     for (const auto& r : rhv) {
@@ -103,7 +147,66 @@ private:
             }
 
             return vars;
-        } else {
+
+        } else if ("fold" == name) {
+
+            Variants vars;
+            if (inFold) return vars;
+            inFold = true;
+
+            // min: 2 + 1 + 1 + 1 = 5
+            if (size < 5) return vars;
+
+            for (auto e0s = 1; e0s < size; ++e0s) {
+                for (auto e1s = 1; e1s < size - e0s; ++e1s) {
+                    auto bodys = size - e0s - e1s - 2;
+
+                    if (bodys <= 0) continue;
+
+                    auto e0 =   generate(e0s);
+                    auto e1 =   generate(e1s);
+                    auto body = generate(bodys);
+
+                    for (const auto& arg0 : e0) {
+                        for (const auto& arg1 : e1) {
+                            for (const auto& b : body) {
+                                vars.push_back(
+                                    TF->getFoldTerm(arg0, arg1, b)
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+
+            inFold = false;
+            return vars;
+
+    } else if ("tfold" == name) {
+
+        Variants vars;
+        if (inFold) return vars;
+        inFold = true;
+
+        // min: 2 + 1 + 1 + 1 = 5
+        if (size < 5) return vars;
+
+        auto bodys = size - 1 - 1 - 2;
+
+        auto e0 = TF->getArgumentTerm(0);
+        auto e1 = TF->getZero();
+        auto body = generate(bodys);
+
+        for (const auto& b : body) {
+            vars.push_back(
+                TF->getTFoldTerm(e0, e1, b)
+            );
+        }
+
+        inFold = false;
+        return vars;
+
+    } else {
             ASSERT(false, "Oh shit...");
         }
     }

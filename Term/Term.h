@@ -42,7 +42,7 @@ public:
 
     virtual BV eval(const BoundVars&) const = 0;
     virtual unsigned char size() const = 0;
-    virtual void registerComponents(std::set<std::string>& c) const { return; }
+    virtual void registerComponents(std::set<std::string>&) const { return; }
 
     virtual bool equals(const Term* other) const {
         if (other == nullptr) return false;

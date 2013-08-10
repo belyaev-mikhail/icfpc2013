@@ -36,10 +36,10 @@ public:
 
         if (c != components) return false;
 
-        for (int i = 0; i < args.size(); ++i) {
+        for (auto i = 0U; i < args.size(); ++i) {
             auto bucket = args[i];
             auto oBucket = outputs[i];
-            for (int j = 0; j < bucket.size(); ++j) {
+            for (auto j = 0U; j < bucket.size(); ++j) {
                 auto arg = bucket[j];
                 auto expected = oBucket[j];
                 auto actual = TF->apply(lambda, arg);

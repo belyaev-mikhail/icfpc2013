@@ -10,7 +10,12 @@
 namespace borealis {
 
 Bruteforcer::Bruteforcer(TermFactory::Ptr TF, const std::set<std::string>& components) :
-    TF(TF), components(components),
+    TF(TF),
+    components(components),
+    totalSize(components.size()),
+    currentComponents(),
+    hasTFold(borealis::util::contains(components, "tfold")),
+    inFold(false),
     nameToUnary {
         {"not",   UnaryArithType::NOT},
         {"shl1",  UnaryArithType::SHL_1},

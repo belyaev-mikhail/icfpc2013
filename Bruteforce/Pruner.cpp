@@ -12,9 +12,9 @@ namespace borealis {
 Pruner::Pruner(const std::string& id, const std::set<std::string>& components, TermFactory::Ptr TF, size_t buckets) :
         components(components), TF(TF) {
 
-    for (int i = 0; i < buckets; ++i) {
+    for (auto i = 0U; i < buckets; ++i) {
         std::vector<BV> bucket;
-        for (int j = 0; j < 256; ++j) {
+        for (auto j = 0U; j < 256; ++j) {
             bucket.push_back(random());
         }
 

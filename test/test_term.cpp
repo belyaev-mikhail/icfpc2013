@@ -155,6 +155,46 @@ TEST(Term, apply) {
         }
     }
 
+    {
+        auto TF = TermFactory::get();
+        REST rest(false);
+
+        // id: L3Hw8zp1UchuL7IqbU8cvGM9
+        // (lambda (x_7551) (fold x_7551 0 (lambda (x_7551 x_7552) (not (xor (shl1 x_7551) x_7552)))))
+        auto id = "L3Hw8zp1UchuL7IqbU8cvGM9";
+        auto lambda = TF->getLambdaTerm(
+            TF->getFoldTerm(
+                TF->getArgumentTerm(0),
+                TF->getZero(),
+                TF->getUnaryTerm(
+                    UnaryArithType::NOT,
+                    TF->getBinaryTerm(
+                        ArithType::XOR,
+                        TF->getUnaryTerm(
+                            UnaryArithType::SHL_1,
+                            TF->getArgumentTerm(1)
+                        ),
+                        TF->getArgumentTerm(2)
+                    )
+                )
+            )
+        );
+
+        std::vector<BV> args;
+        for (int i = 0; i < 256; ++i) {
+            args.push_back(random());
+        }
+
+        auto evalResponse = rest.getEvalById(id, args);
+
+        for (int i = 0; i < 256; ++i) {
+            auto arg = args[i];
+            auto expected = evalResponse.outputs[i];
+            auto actual = TF->apply(lambda, arg);
+            ASSERT_EQ(expected, actual);
+        }
+    }
+
 }
 
 } // namespace

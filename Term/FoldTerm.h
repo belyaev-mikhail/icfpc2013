@@ -17,8 +17,9 @@ class FoldTerm: public borealis::Term {
     Term::Ptr arg1;
     Term::Ptr arg2;
     Term::Ptr body;
+    std::string type;
 
-    FoldTerm(Term::Ptr arg1, Term::Ptr arg2, Term::Ptr body):
+    FoldTerm(Term::Ptr arg1, Term::Ptr arg2, Term::Ptr body, const std::string& type = "fold"):
         Term(
             class_tag(*this),
             "(fold " +
@@ -28,7 +29,7 @@ class FoldTerm: public borealis::Term {
                     body->toString() +
                 ")" +
             ")"
-        ), arg1(arg1), arg2(arg2), body(body) {};
+        ), arg1(arg1), arg2(arg2), body(body), type(type) {};
 
 public:
 
@@ -68,7 +69,7 @@ public:
     }
 
     virtual void registerComponents(std::set<std::string>& c) const override {
-        c.insert("fold"); // FIXME: tfold???
+        c.insert(type);
 
         arg1->registerComponents(c);
         arg2->registerComponents(c);
