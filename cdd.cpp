@@ -80,7 +80,7 @@ int main(int argc, const char** argv) {
 
                     std::cout << "Nay..." << std::endl;
 
-                    sleep(4);
+                    sleep(5);
                     continue;
 
                 } else {

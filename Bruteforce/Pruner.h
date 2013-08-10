@@ -36,9 +36,15 @@ public:
 
         if (c != components) return false;
 
-        for (auto i = 0U; i < args.size(); ++i) {
-            auto bucket = args[i];
-            auto oBucket = outputs[i];
+        auto ait = args.begin();
+        auto oit = outputs.begin();
+
+        auto aend = args.end();
+        auto oend = outputs.end();
+
+        while (ait != aend && oit != oend) {
+            auto& bucket = *ait++;
+            auto& oBucket = *oit++;
             for (auto j = 0U; j < bucket.size(); ++j) {
                 auto arg = bucket[j];
                 auto expected = oBucket[j];
