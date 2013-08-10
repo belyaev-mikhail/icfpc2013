@@ -1,12 +1,12 @@
 /*
- * Bruteforce.h
+ * RandomBruteforce.h
  *
  *  Created on: Aug 9, 2013
  *      Author: ice-phoenix
  */
 
-#ifndef BRUTEFORCE_H_
-#define BRUTEFORCE_H_
+#ifndef RANDOMBRUTEFORCE_H_
+#define RANDOMBRUTEFORCE_H_
 
 #include <set>
 
@@ -18,9 +18,11 @@
 
 namespace borealis {
 
-class Bruteforcer {
+class RandomBruteforcer {
 
     TermFactory::Ptr TF;
+
+    std::vector<Term::Ptr> terminals;
 
     struct component_compare {
         bool operator() (const std::string& a, const std::string& b) const {
@@ -59,6 +61,8 @@ class Bruteforcer {
 
     bool inFold;
 
+    bool inIf;
+
     typedef std::list<Term::Ptr> Variants;
 
     std::unordered_map<std::string, UnaryArithType> nameToUnary;
@@ -66,13 +70,17 @@ class Bruteforcer {
 
 public:
 
-    Variants doit(int size) {
+    Variants doit(int size, bool ifOnly = false) {
 
         Variants subres;
 
         if (hasTFold) {
             currentComponents.push_back("tfold");
             subres = generateComponent("tfold", size - 1);
+            currentComponents.pop_back();
+        } else if (ifOnly) {
+            currentComponents.push_back("tif0");
+            subres = generateComponent("tif0", size - 1);
             currentComponents.pop_back();
         } else {
             subres = generate(size - 1);
@@ -85,51 +93,45 @@ public:
         return vars;
     }
 
-    Variants doitNaked(int size) {
-
-        Variants subres;
-
-        if (hasTFold) {
-            currentComponents.push_back("tfold");
-            subres = generateComponent("tfold", size);
-            currentComponents.pop_back();
-        } else {
-            subres = generate(size);
-        }
-
-        return subres;
-    }
-
 private:
 
     Variants generate(int size) {
         if (size < 1) return Variants();
 
         if (size == 1) {
-            return inFold ? Variants{
-                TF->getZero(),
-                TF->getOne(),
-                TF->getArgumentTerm(0),
-                TF->getArgumentTerm(1),
-                TF->getArgumentTerm(2)
-            } : Variants{
-                TF->getZero(),
-                TF->getOne(),
-                TF->getArgumentTerm(0)
-            };
+
+            if (size == 1) {
+                if (inFold) {
+                    auto r = rand() % 5;
+                    return r == 0 ? Variants{ TF->getZero() } :
+                           r == 1 ? Variants{ TF->getOne() } :
+                           r == 2 ? Variants{ TF->getArgumentTerm(0) } :
+                           r == 3 ? Variants{ TF->getArgumentTerm(1) } :
+                                    Variants{ TF->getArgumentTerm(2) };
+                } else {
+                    auto r = rand() % 3;
+                    return r == 0 ? Variants{ TF->getZero() } :
+                           r == 1 ? Variants{ TF->getOne() } :
+                                    Variants{ TF->getArgumentTerm(0) };
+                }
+            }
         }
 
         // if (sizeLeft() >= size) return Variants();
 
-        std::list<Term::Ptr> res;
+        Variants res;
+
         for (const auto& c : components) {
             currentComponents.push_back(c);
             auto subres = generateComponent(c, size);
             currentComponents.pop_back();
 
-            res.splice(res.begin(), subres);
+            for (auto& s : subres) {
+                res.push_back(std::move(s));
+            }
         }
-        return res;
+
+        return std::move(res);
     }
 
     Variants generateComponent(const std::string& name, int size) {
@@ -235,6 +237,8 @@ private:
     } else if ("if0" == name) {
 
         Variants vars;
+        if (inIf) return vars;
+        inIf = true;
 
         // min: 1 + 1 + 1 + 1 = 4
         if (size < 4) return vars;
@@ -261,6 +265,31 @@ private:
             }
         }
 
+        inIf = false;
+        return vars;
+
+    } else if ("tif0" == name) {
+
+        Variants vars;
+        if (inIf) return vars;
+        inIf = true;
+
+        auto tt = rand() % terminals.size();
+        auto ff = rand() % terminals.size();
+
+        auto cnds = size - 1 - terminals[tt]->size() - terminals[ff]->size();
+
+        if (cnds <= 0) return vars;
+
+        auto cnd = generate(cnds);
+
+        for (const auto& c : cnd) {
+            vars.push_back(
+                TF->getTernaryTerm(c, terminals[tt], terminals[ff])
+            );
+        }
+
+        inIf = false;
         return vars;
 
     } else {
@@ -270,7 +299,7 @@ private:
 
 public:
 
-    Bruteforcer(TermFactory::Ptr TF, const std::set<std::string>& components);
+    RandomBruteforcer(TermFactory::Ptr TF, const std::set<std::string>& components, const std::list<Term::Ptr>& terminals);
 
 };
 
@@ -278,4 +307,4 @@ public:
 
 #include "Util/unmacros.h"
 
-#endif /* BRUTEFORCE_H_ */
+#endif /* RANDOMBRUTEFORCE_H_ */

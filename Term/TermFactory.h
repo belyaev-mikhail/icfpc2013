@@ -22,7 +22,8 @@ class TermFactory {
     template<class Fst, class Snd, class Thrd>
     using triple = std::tuple<Fst, Snd, Thrd>;
 
-    bool caching;
+    bool caching = true;
+
 public:
 
     typedef std::shared_ptr<TermFactory> Ptr;
@@ -53,11 +54,11 @@ public:
 
         static triMap trms;
 
-        if(caching) {
+        if (caching) {
             auto key = std::make_tuple(arg1, arg2, body);
             auto it = trms.find(key);
-            if(it != trms.end()) {
-                return it -> second;
+            if (it != trms.end()) {
+                return it->second;
             }
 
             auto res = Term::Ptr{
@@ -68,6 +69,7 @@ public:
 
             trms[key] = res;
             return res;
+
         } else return Term::Ptr {
             new FoldTerm(
                 arg1, arg2, body
@@ -96,12 +98,11 @@ public:
 
         static triMap trms;
 
-        if(caching) {
-
+        if (caching) {
             auto key = std::make_tuple(cnd, tru, fls);
             auto it = trms.find(key);
-            if(it != trms.end()) {
-                return it -> second;
+            if (it != trms.end()) {
+                return it->second;
             }
 
             auto res = Term::Ptr{
@@ -134,11 +135,11 @@ public:
             { ArithType::PLUS,  plusMap },
         };
 
-        if(caching) {
+        if (caching) {
             auto& map = cache.at(opc);
             auto key = std::make_pair(lhv, rhv);
             auto it = map.find(key);
-            if(it != map.end()) return it->second;
+            if (it != map.end()) return it->second;
 
             auto res = Term::Ptr{
                 new BinaryTerm(
@@ -148,6 +149,7 @@ public:
 
             map[key] = res;
             return res;
+
         } else return Term::Ptr{
             new BinaryTerm(
                 opc, lhv, rhv
@@ -170,26 +172,28 @@ public:
             {UnaryArithType::SHR_16, shr16Map}
         };
 
-        if(caching) {
+        if (caching) {
             auto& map = cache.at(opc);
             auto it = map.find(rhv);
             if (it != map.end()) {
-                return it -> second;
+                return it->second;
             }
 
             auto res = Term::Ptr{
                 new UnaryTerm(opc, rhv)
             };
+
             map[rhv] = res;
             return res;
+
         } else return Term::Ptr{
             new UnaryTerm(opc, rhv)
         };
     }
 
-    static TermFactory::Ptr get() {
+    static TermFactory::Ptr get(bool fresh = true) {
         static TermFactory::Ptr instance(new TermFactory());
-        return instance;
+        return fresh ? TermFactory::Ptr{ new TermFactory() } : instance;
     }
 
     static BV apply(Term::Ptr lambda, BV arg) {

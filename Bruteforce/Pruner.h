@@ -55,6 +55,39 @@ public:
         return true;
     }
 
+    std::list<Term::Ptr> prune(const std::list<Term::Ptr>& vars) const {
+
+        std::list<Term::Ptr> res;
+
+        for (const auto& var : vars) {
+
+            unsigned int count = 0;
+            unsigned int total = 0;
+
+            auto ait = args.begin();
+            auto oit = outputs.begin();
+
+            auto aend = args.end();
+            auto oend = outputs.end();
+
+            while (ait != aend && oit != oend) {
+                auto& bucket = *ait++;
+                auto& oBucket = *oit++;
+                for (auto j = 0U; j < bucket.size(); ++j) {
+                    total++;
+                    auto arg = bucket[j];
+                    auto expected = oBucket[j];
+                    auto actual = TF->apply(var, arg);
+                    if (expected == actual) count++;
+                }
+            }
+
+            if (2 * count > 1 * total) res.push_back(var);
+        }
+
+        return std::move(res);
+    }
+
     void reinforce(BV arg, BV output) {
         args.push_front({arg});
         outputs.push_front({output});
