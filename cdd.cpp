@@ -48,8 +48,6 @@ int main(int argc, const char** argv) {
 
         auto vars = b.doit(size);
 
-        bool exit = false;
-
         for (const auto& var : vars) {
             if (p.test(var)) {
                 std::cout << "Submitting:" << std::endl
@@ -63,8 +61,6 @@ int main(int argc, const char** argv) {
                     break;
                 } else {
 
-                    exit = true;
-
                     std::cout << "Nay..." << std::endl;
 
                     sleep(4);
@@ -75,8 +71,6 @@ int main(int argc, const char** argv) {
                 return 0;
             }
         }
-
-        if (exit) return 0;
 
         sleep(15);
 

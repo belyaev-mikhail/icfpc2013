@@ -22,6 +22,7 @@ class Bruteforcer {
 
     TermFactory::Ptr TF;
     std::set<std::string> components;
+    std::set<std::string> currentComponents;
 
     typedef std::list<Term::Ptr> Variants;
 
@@ -32,6 +33,7 @@ public:
 
     Variants doit(size_t size) {
         auto subres = generate(size - 1);
+
         Variants vars;
         std::transform(subres.begin(), subres.end(), std::back_inserter(vars),
             [this](const Term::Ptr& p) { return TF->getLambdaTerm(p); }
@@ -44,6 +46,8 @@ private:
     Variants generate(size_t size) {
         if (size < 1) return Variants();
 
+        if (size <= currentComponents.size()) return Variants();
+
         if (size == 1) return Variants{
             TF->getZero(),
             TF->getOne(),
@@ -52,7 +56,10 @@ private:
 
         std::list<Term::Ptr> res;
         for (const auto& c : components) {
+            currentComponents.insert(c);
             auto subres = generateComponent(c, size);
+            currentComponents.erase(c);
+
             res.insert(res.begin(), subres.begin(), subres.end());
         }
         return res;
