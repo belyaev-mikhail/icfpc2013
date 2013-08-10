@@ -11,7 +11,7 @@ namespace borealis {
 
 Bruteforcer::Bruteforcer(TermFactory::Ptr TF, const std::set<std::string>& components) :
     TF(TF),
-    components(components),
+    components(components.begin(), components.end(), component_compare()),
     totalSize(components.size()),
     currentComponents(),
     hasTFold(borealis::util::contains(components, "tfold")),

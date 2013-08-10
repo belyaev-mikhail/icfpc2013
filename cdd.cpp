@@ -8,6 +8,7 @@
 #include <iostream>
 
 #include "Bruteforce/Bruteforce.h"
+#include "Bruteforce/NewBruteforce.h"
 #include "Bruteforce/Pruner.h"
 #include "BV/BV.h"
 #include "Logging/logger.hpp"
@@ -45,11 +46,11 @@ int main(int argc, const char** argv) {
 
         std::cout << problem << std::endl;
 
-        if (problem.size > 12) continue;
+        if (problem.size > 20) continue;
         if (problem.solved) continue;
         if (problem.timeLeft <= 0.5) continue;
-        if (borealis::util::contains(problem.operators, "if0") ||
-            borealis::util::contains(problem.operators, "fold")) continue;
+        if (borealis::util::contains(problem.operators, "fold") ||
+            borealis::util::contains(problem.operators, "bonus")) continue;
 
         auto id = problem.id;
         size_t size = problem.size;
@@ -58,40 +59,47 @@ int main(int argc, const char** argv) {
         std::cout << "Solving:" << std::endl
                   << id << ":" << size << ":" << components << std::endl;
 
-        Bruteforcer b(TermFactory::get(), components);
+        NewBruteforcer b(components);
         Pruner p(id, components, TermFactory::get(), 4);
 
         auto vars = b.doit(size);
 
-        for (const auto& var : vars) {
-            if (p.test(var)) {
-                std::cout << "Submitting:" << std::endl
-                          << id << std::endl
-                          << var->toString() << std::endl;
+        std::cout << vars.size() << std::endl;
 
-                auto response = rest.tryGuess(id, var);
-
-                if ("win" == response.status) {
-                    std::cout << "YAY!!!" << std::endl;
-                    break;
-                } else if ("mismatch" == response.status) {
-
-                    p.reinforce(response.values[0], response.values[1]);
-
-                    std::cout << "Nay..." << std::endl;
-
-                    sleep(5);
-                    continue;
-
-                } else {
-
-                    std::cout << "Huh???" << std::endl;
-
-                    sleep(4);
-                    continue;
-                }
-            }
-        }
+//        for (const auto& var : vars) {
+//            if (p.test(var)) {
+//                std::cout << "Submitting:" << std::endl
+//                          << id << std::endl
+//                          << var->toString() << std::endl;
+//
+//                auto response = rest.tryGuess(id, var);
+//
+//                if ("win" == response.status) {
+//                    std::cout << "YAY!!!" << std::endl;
+//                    break;
+//                } else if ("mismatch" == response.status) {
+//
+//                    std::cout << "Reinforcing with: " << std::endl
+//                              << response.values[0] << std::endl
+//                              << response.values[1] << std::endl
+//                              << response.values[2] << std::endl;
+//
+//                    p.reinforce(response.values[0], response.values[1]);
+//
+//                    std::cout << "Nay..." << std::endl;
+//
+//                    sleep(5);
+//                    continue;
+//
+//                } else {
+//
+//                    std::cout << "Huh???" << std::endl;
+//
+//                    sleep(4);
+//                    continue;
+//                }
+//            }
+//        }
 
         std::cout << "Pausing..." << std::endl;
         sleep(15);

@@ -1,26 +1,24 @@
 /*
- * Bruteforce.h
+ * NewBruteforce.h
  *
  *  Created on: Aug 9, 2013
  *      Author: ice-phoenix
  */
 
-#ifndef BRUTEFORCE_H_
-#define BRUTEFORCE_H_
+#ifndef NEWBRUTEFORCE_H_
+#define NEWBRUTEFORCE_H_
 
 #include <set>
 
-#include "Term/Term.h"
-#include "Term/TermFactory.h"
 #include "Util/util.h"
 
 #include "Util/macros.h"
 
 namespace borealis {
 
-class Bruteforcer {
+using borealis::util::uniq;
 
-    TermFactory::Ptr TF;
+class NewBruteforcer {
 
     struct component_compare {
         bool operator() (const std::string& a, const std::string& b) const {
@@ -59,10 +57,10 @@ class Bruteforcer {
 
     bool inFold;
 
-    typedef std::list<Term::Ptr> Variants;
+    typedef std::vector< std::string > Variants;
 
-    std::unordered_map<std::string, UnaryArithType> nameToUnary;
-    std::unordered_map<std::string, ArithType> nameToBinary;
+    std::unordered_map<std::string, char> nameToUnary;
+    std::unordered_map<std::string, char> nameToBinary;
 
 public:
 
@@ -78,11 +76,7 @@ public:
             subres = generate(size - 1);
         }
 
-        Variants vars;
-        std::transform(subres.begin(), subres.end(), std::back_inserter(vars),
-            [this](const Term::Ptr& p) { return TF->getLambdaTerm(p); }
-        );
-        return vars;
+        return std::move(subres);
     }
 
 private:
@@ -92,29 +86,32 @@ private:
 
         if (size == 1) {
             return inFold ? Variants{
-                TF->getZero(),
-                TF->getOne(),
-                TF->getArgumentTerm(0),
-                TF->getArgumentTerm(1),
-                TF->getArgumentTerm(2)
+                std::string{"0"},
+                std::string{"1"},
+                std::string{"x"},
+                std::string{"y"},
+                std::string{"z"},
             } : Variants{
-                TF->getZero(),
-                TF->getOne(),
-                TF->getArgumentTerm(0)
+                std::string{"0"},
+                std::string{"1"},
+                std::string{"x"},
             };
         }
 
         // if (sizeLeft() >= size) return Variants();
 
-        std::list<Term::Ptr> res;
+        Variants res;
         for (const auto& c : components) {
             currentComponents.push_back(c);
             auto subres = generateComponent(c, size);
             currentComponents.pop_back();
 
-            res.splice(res.begin(), subres);
+            res.reserve(subres.size());
+            for (auto& s : subres) {
+                res.push_back(std::move(s));
+            }
         }
-        return res;
+        return std::move(res);
     }
 
     Variants generateComponent(const std::string& name, int size) {
@@ -127,10 +124,15 @@ private:
             auto subres = generate(size - 1);
 
             Variants vars;
-            std::transform(subres.begin(), subres.end(), std::back_inserter(vars),
-                [this,&type](const Term::Ptr& p) { return TF->getUnaryTerm(type, p); }
-            );
-            return vars;
+            vars.reserve(subres.size());
+            for (auto& p : subres) {
+
+                p.reserve(30);
+                p += type;
+                vars.push_back(std::move(p));
+            }
+
+            return std::move(vars);
 
         } else if (borealis::util::containsKey(nameToBinary, name)) {
             auto type = nameToBinary.at(name);
@@ -148,16 +150,20 @@ private:
                 auto lhv = generate(arg0s);
                 auto rhv = generate(arg1s);
 
-                for (const auto& l : lhv) {
-                    for (const auto& r : rhv) {
-                        vars.push_back(
-                            TF->getBinaryTerm(type, l, r)
-                        );
+                vars.reserve(vars.size() + lhv.size() * rhv.size());
+                for (auto& l : lhv) {
+                    for (auto& r : rhv) {
+
+                        r.reserve(30);
+                        r += l;
+                        r += type;
+
+                        vars.push_back(std::move(r));
                     }
                 }
             }
 
-            return vars;
+            return std::move(vars);
 
         } else if ("fold" == name) {
 
@@ -178,12 +184,17 @@ private:
                     auto e1 =   generate(e1s);
                     auto body = generate(bodys);
 
-                    for (const auto& arg0 : e0) {
-                        for (const auto& arg1 : e1) {
-                            for (const auto& b : body) {
-                                vars.push_back(
-                                    TF->getFoldTerm(arg0, arg1, b)
-                                );
+                    vars.reserve(vars.size() + e0.size() * e1.size() * body.size());
+                    for (auto& arg0 : e0) {
+                        for (auto& arg1 : e1) {
+                            for (auto& b : body) {
+
+                                b.reserve(30);
+                                b += arg1;
+                                b += arg0;
+                                b += "f";
+
+                                vars.push_back(std::move(b));
                             }
                         }
                     }
@@ -191,7 +202,7 @@ private:
             }
 
             inFold = false;
-            return vars;
+            return std::move(vars);
 
     } else if ("tfold" == name) {
 
@@ -204,18 +215,21 @@ private:
 
         auto bodys = size - 1 - 1 - 2;
 
-        auto e0 = TF->getArgumentTerm(0);
-        auto e1 = TF->getZero();
         auto body = generate(bodys);
 
-        for (const auto& b : body) {
-            vars.push_back(
-                TF->getTFoldTerm(e0, e1, b)
-            );
+        vars.reserve(body.size());
+        for (auto& b : body) {
+
+            b.reserve(30);
+            b += '0';
+            b += 'x';
+            b += 't';
+
+            vars.push_back(std::move(b));
         }
 
         inFold = false;
-        return vars;
+        return std::move(vars);
 
     } else if ("if0" == name) {
 
@@ -234,19 +248,24 @@ private:
                 auto tru = generate(trus);
                 auto fls = generate(flss);
 
-                for (const auto& c : cnd) {
-                    for (const auto& t : tru) {
-                        for (const auto& f : fls) {
-                            vars.push_back(
-                                TF->getTernaryTerm(c, t, f)
-                            );
+                vars.reserve(vars.size() + cnd.size() * tru.size() * fls.size());
+                for (auto& c : cnd) {
+                    for (auto& t : tru) {
+                        for (auto& f : fls) {
+
+                            f.reserve(30);
+                            f += t;
+                            f += c;
+                            f += "f";
+
+                            vars.push_back(std::move(f));
                         }
                     }
                 }
             }
         }
 
-        return vars;
+        return std::move(vars);
 
     } else {
             ASSERT(false, "Oh shit...");
@@ -255,7 +274,7 @@ private:
 
 public:
 
-    Bruteforcer(TermFactory::Ptr TF, const std::set<std::string>& components);
+    NewBruteforcer(const std::set<std::string>& components);
 
 };
 
@@ -263,4 +282,4 @@ public:
 
 #include "Util/unmacros.h"
 
-#endif /* BRUTEFORCE_H_ */
+#endif /* NEWBRUTEFORCE_H_ */

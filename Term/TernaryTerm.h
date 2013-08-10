@@ -41,7 +41,7 @@ public:
     }
 
     virtual BV eval(const BoundVars& env) const override {
-        if (cnd->eval(env)) {
+        if (!cnd->eval(env)) {
             return tru->eval(env);
         } else {
             return fls->eval(env);
