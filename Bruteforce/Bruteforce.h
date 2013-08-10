@@ -33,7 +33,7 @@ class Bruteforcer {
         }
     };
 
-    std::set<std::string, component_compare> components;
+    const std::set<std::string, component_compare> components;
     int totalSize;
 
     std::list<std::string> currentComponents;
@@ -66,6 +66,17 @@ class Bruteforcer {
 
 public:
 
+    bool allComponentsUsed() {
+        for (const auto& c : components) {
+            auto r = std::find(currentComponents.begin(), currentComponents.end(), c);
+            if (r == currentComponents.end()) {
+                return false;
+            }
+
+        }
+        return true;
+    }
+
     Variants doit(int size) {
 
         Variants subres;
@@ -87,10 +98,40 @@ public:
 
 private:
 
+    bool isFinal(std::list<std::string> l) {
+        //std::cout << "final?" << l << std::endl;
+        auto cnt = 0;
+        l.reverse();
+        for(const auto & i : l) {
+            if (i == "0") {
+                cnt += 1;
+            } else if (borealis::util::containsKey(nameToBinary, i)) {
+                cnt -= 1;
+            } else if (i == "if0" || i == "fold" || i == "tfold") {
+                cnt -= 2;
+            }
+        }
+        //std::cout << cnt << std::endl;
+        return cnt == 1;
+
+    }
+
+
+    /**----------*/
+
     Variants generate(int size) {
         if (size < 1) return Variants();
 
         if (size == 1) {
+
+            currentComponents.push_back("0");
+            //std::cout << currentComponents << std::endl;
+//            if (isFinal(currentComponents)) {
+//                if (!allComponentsUsed()) {
+//                    return Variants();
+//                }
+//            }
+
             return inFold ? Variants{
                 TF->getZero(),
                 TF->getOne(),
@@ -110,6 +151,9 @@ private:
         for (const auto& c : components) {
             currentComponents.push_back(c);
             auto subres = generateComponent(c, size);
+            while (currentComponents.back() == "0") {
+                currentComponents.pop_back();
+            }
             currentComponents.pop_back();
 
             res.splice(res.begin(), subres);
@@ -138,7 +182,9 @@ private:
             Variants vars;
 
             // min: 1 + 1 + 1 = 3
-            if (size < 3) return vars;
+            if (size < 3) {
+                return vars;
+            }
 
             for (auto arg0s = 1; arg0s < (size - size/2); ++arg0s) {
                 auto arg1s = size - arg0s - 1;

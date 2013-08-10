@@ -85,6 +85,10 @@ private:
         if (size < 1) return Variants();
 
         if (size == 1) {
+            currentComponents.push_back("0");
+            std::cout << currentComponents << std::endl;
+
+
             return inFold ? Variants{
                 std::string{"0"},
                 std::string{"1"},
@@ -104,6 +108,9 @@ private:
         for (const auto& c : components) {
             currentComponents.push_back(c);
             auto subres = generateComponent(c, size);
+            while (currentComponents.back() == "0") {
+                currentComponents.pop_back();
+            }
             currentComponents.pop_back();
 
             res.reserve(subres.size());
