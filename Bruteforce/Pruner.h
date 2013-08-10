@@ -21,8 +21,8 @@ class Pruner {
 
     std::set<std::string> components;
 
-    std::vector<std::vector<BV>> args;
-    std::vector<std::vector<BV>> outputs;
+    std::list<std::vector<BV>> args;
+    std::list<std::vector<BV>> outputs;
     TermFactory::Ptr TF;
 
 public:
@@ -47,6 +47,11 @@ public:
             }
         }
         return true;
+    }
+
+    void reinforce(BV arg, BV output) {
+        args.push_front({arg});
+        outputs.push_front({output});
     }
 
 };

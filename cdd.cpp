@@ -74,16 +74,22 @@ int main(int argc, const char** argv) {
                 if ("win" == response.status) {
                     std::cout << "YAY!!!" << std::endl;
                     break;
-                } else {
+                } else if ("mismatch" == response.status) {
+
+                    p.reinforce(response.values[0], response.values[1]);
 
                     std::cout << "Nay..." << std::endl;
 
                     sleep(4);
                     continue;
 
-                }
+                } else {
 
-                return 0;
+                    std::cout << "Huh???" << std::endl;
+
+                    sleep(4);
+                    continue;
+                }
             }
         }
 
