@@ -52,7 +52,8 @@ public:
 
     bool operator==(const Term& other) const {
         if (this == &other) return true;
-        return this->equals(&other);
+        else return false;
+        //return this->equals(&other);
     }
 
     virtual size_t hashCode() const {

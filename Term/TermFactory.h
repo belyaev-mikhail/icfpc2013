@@ -19,6 +19,9 @@ namespace borealis {
 
 class TermFactory {
 
+    template<class Fst, class Snd, class Thrd>
+    using triple = std::tuple<Fst, Snd, Thrd>;
+
 public:
 
     typedef std::shared_ptr<TermFactory> Ptr;
@@ -45,11 +48,24 @@ public:
     }
 
     Term::Ptr getFoldTerm(Term::Ptr arg1, Term::Ptr arg2, Term::Ptr body) {
-        return Term::Ptr{
+        typedef std::unordered_map< triple<Term::Ptr, Term::Ptr, Term::Ptr>, Term::Ptr > triMap;
+
+        static triMap trms;
+
+        auto key = std::make_tuple(arg1, arg2, body);
+        auto it = trms.find(key);
+        if(it != trms.end()) {
+            return it -> second;
+        }
+
+        auto res = Term::Ptr{
             new FoldTerm(
                 arg1, arg2, body
             )
         };
+
+        trms[key] = res;
+        return res;
     }
 
     Term::Ptr getTFoldTerm(Term::Ptr arg1, Term::Ptr arg2, Term::Ptr body) {
@@ -69,19 +85,53 @@ public:
     }
 
     Term::Ptr getTernaryTerm(Term::Ptr cnd, Term::Ptr tru, Term::Ptr fls) {
-        return Term::Ptr{
+        typedef std::unordered_map< triple<Term::Ptr, Term::Ptr, Term::Ptr>, Term::Ptr > triMap;
+
+        static triMap trms;
+
+        auto key = std::make_tuple(cnd, tru, fls);
+        auto it = trms.find(key);
+        if(it != trms.end()) {
+            return it -> second;
+        }
+
+        auto res = Term::Ptr{
             new TernaryTerm(
                 cnd, tru, fls
             )
         };
+
+        trms[key] = res;
+        return res;
     }
 
     Term::Ptr getBinaryTerm(ArithType opc, Term::Ptr lhv, Term::Ptr rhv) {
-        return Term::Ptr{
+        typedef std::unordered_map< std::pair<Term::Ptr, Term::Ptr>, Term::Ptr > binMap;
+
+        static binMap xorMap;
+        static binMap orMap;
+        static binMap andMap;
+        static binMap plusMap;
+        static std::unordered_map<ArithType, binMap> cache {
+            { ArithType::AND,   andMap },
+            { ArithType::OR,    orMap },
+            { ArithType::XOR,   xorMap },
+            { ArithType::PLUS,  plusMap },
+        };
+
+        auto& map = cache.at(opc);
+        auto key = std::make_pair(lhv, rhv);
+        auto it = map.find(key);
+        if(it != map.end()) return it->second;
+
+        auto res = Term::Ptr{
             new BinaryTerm(
                 opc, lhv, rhv
             )
         };
+
+        map[key] = res;
+        return res;
     }
 
     Term::Ptr getUnaryTerm(UnaryArithType opc, Term::Ptr rhv) {
@@ -100,8 +150,9 @@ public:
         };
 
         auto& map = cache.at(opc);
-        if (borealis::util::containsKey(map, rhv)) {
-            return map.at(rhv);
+        auto it = map.find(rhv);
+        if (it != map.end()) {
+            return it -> second;
         }
 
         auto res = Term::Ptr{

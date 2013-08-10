@@ -129,7 +129,7 @@ private:
             // min: 1 + 1 + 1 = 3
             if (size < 3) return vars;
 
-            for (auto arg0s = 1; arg0s < size; ++arg0s) {
+            for (auto arg0s = 1; arg0s < (size - size/2); ++arg0s) {
                 auto arg1s = size - arg0s - 1;
 
                 if (arg1s <= 0) continue;
