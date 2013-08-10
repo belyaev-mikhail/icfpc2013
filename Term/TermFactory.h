@@ -22,6 +22,7 @@ class TermFactory {
     template<class Fst, class Snd, class Thrd>
     using triple = std::tuple<Fst, Snd, Thrd>;
 
+    bool caching;
 public:
 
     typedef std::shared_ptr<TermFactory> Ptr;
@@ -52,20 +53,26 @@ public:
 
         static triMap trms;
 
-        auto key = std::make_tuple(arg1, arg2, body);
-        auto it = trms.find(key);
-        if(it != trms.end()) {
-            return it -> second;
-        }
+        if(caching) {
+            auto key = std::make_tuple(arg1, arg2, body);
+            auto it = trms.find(key);
+            if(it != trms.end()) {
+                return it -> second;
+            }
 
-        auto res = Term::Ptr{
+            auto res = Term::Ptr{
+                new FoldTerm(
+                    arg1, arg2, body
+                )
+            };
+
+            trms[key] = res;
+            return res;
+        } else return Term::Ptr {
             new FoldTerm(
                 arg1, arg2, body
             )
         };
-
-        trms[key] = res;
-        return res;
     }
 
     Term::Ptr getTFoldTerm(Term::Ptr arg1, Term::Ptr arg2, Term::Ptr body) {
@@ -89,20 +96,28 @@ public:
 
         static triMap trms;
 
-        auto key = std::make_tuple(cnd, tru, fls);
-        auto it = trms.find(key);
-        if(it != trms.end()) {
-            return it -> second;
-        }
+        if(caching) {
 
-        auto res = Term::Ptr{
+            auto key = std::make_tuple(cnd, tru, fls);
+            auto it = trms.find(key);
+            if(it != trms.end()) {
+                return it -> second;
+            }
+
+            auto res = Term::Ptr{
+                new TernaryTerm(
+                    cnd, tru, fls
+                )
+            };
+
+            trms[key] = res;
+            return res;
+
+        } else return Term::Ptr{
             new TernaryTerm(
                 cnd, tru, fls
             )
         };
-
-        trms[key] = res;
-        return res;
     }
 
     Term::Ptr getBinaryTerm(ArithType opc, Term::Ptr lhv, Term::Ptr rhv) {
@@ -119,19 +134,25 @@ public:
             { ArithType::PLUS,  plusMap },
         };
 
-        auto& map = cache.at(opc);
-        auto key = std::make_pair(lhv, rhv);
-        auto it = map.find(key);
-        if(it != map.end()) return it->second;
+        if(caching) {
+            auto& map = cache.at(opc);
+            auto key = std::make_pair(lhv, rhv);
+            auto it = map.find(key);
+            if(it != map.end()) return it->second;
 
-        auto res = Term::Ptr{
+            auto res = Term::Ptr{
+                new BinaryTerm(
+                    opc, lhv, rhv
+                )
+            };
+
+            map[key] = res;
+            return res;
+        } else return Term::Ptr{
             new BinaryTerm(
                 opc, lhv, rhv
             )
         };
-
-        map[key] = res;
-        return res;
     }
 
     Term::Ptr getUnaryTerm(UnaryArithType opc, Term::Ptr rhv) {
@@ -149,17 +170,21 @@ public:
             {UnaryArithType::SHR_16, shr16Map}
         };
 
-        auto& map = cache.at(opc);
-        auto it = map.find(rhv);
-        if (it != map.end()) {
-            return it -> second;
-        }
+        if(caching) {
+            auto& map = cache.at(opc);
+            auto it = map.find(rhv);
+            if (it != map.end()) {
+                return it -> second;
+            }
 
-        auto res = Term::Ptr{
+            auto res = Term::Ptr{
+                new UnaryTerm(opc, rhv)
+            };
+            map[rhv] = res;
+            return res;
+        } else return Term::Ptr{
             new UnaryTerm(opc, rhv)
         };
-        map[rhv] = res;
-        return res;
     }
 
     static TermFactory::Ptr get() {

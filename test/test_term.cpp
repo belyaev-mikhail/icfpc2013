@@ -8,7 +8,7 @@
 #include <gtest/gtest.h>
 
 #include "REST/REST.h"
-#include "Term/TermFactory.h"
+#include "Term/Pack.h"
 #include "Util/util.h"
 
 namespace {
@@ -194,7 +194,10 @@ TEST(Term, apply) {
             ASSERT_EQ(expected, actual);
         }
     }
+}
 
+TEST(Term, pack) {
+    std::cout << unpack("FX0|AIYAZ0!A+I&^|^!DZZZZZYZY")->toString() << std::endl;
 }
 
 } // namespace
