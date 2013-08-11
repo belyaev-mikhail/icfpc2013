@@ -98,7 +98,7 @@ public:
 
 namespace std {
 template<>
-struct std::hash<borealis::UnaryArithType> : public borealis::util::enums::enum_hash<borealis::UnaryArithType> {};
+struct hash<borealis::UnaryArithType> : public borealis::util::enums::enum_hash<borealis::UnaryArithType> {};
 } // namespace std
 
 #endif /* UNARYTERM_H_ */

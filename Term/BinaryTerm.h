@@ -99,7 +99,7 @@ public:
 
 namespace std {
 template<>
-struct std::hash<borealis::ArithType> : public borealis::util::enums::enum_hash<borealis::ArithType> {};
+struct hash<borealis::ArithType> : public borealis::util::enums::enum_hash<borealis::ArithType> {};
 } // namespace std
 
 #endif /* BINARYTERM_H_ */
