@@ -4,7 +4,7 @@
 
 CXX := clang++
 
-RTTIFLAG := -fno-rtti
+RTTIFLAG :=
 
 DEFS := -DGOOGLE_PROTOBUF_NO_RTTI
 
