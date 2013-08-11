@@ -86,8 +86,6 @@ private:
 
         if (size == 1) {
             currentComponents.push_back("0");
-            std::cout << currentComponents << std::endl;
-
 
             return inFold ? Variants{
                 std::string{"0"},

@@ -99,7 +99,6 @@ public:
 private:
 
     bool isFinal(std::list<std::string> l) {
-        //std::cout << "final?" << l << std::endl;
         auto cnt = 0;
         l.reverse();
         for(const auto & i : l) {
@@ -111,7 +110,6 @@ private:
                 cnt -= 2;
             }
         }
-        //std::cout << cnt << std::endl;
         return cnt == 1;
 
     }
@@ -125,12 +123,11 @@ private:
         if (size == 1) {
 
             currentComponents.push_back("0");
-            //std::cout << currentComponents << std::endl;
-//            if (isFinal(currentComponents)) {
-//                if (!allComponentsUsed()) {
-//                    return Variants();
-//                }
-//            }
+            if (isFinal(currentComponents)) {
+                if (!allComponentsUsed()) {
+                    return Variants();
+                }
+            }
 
             return inFold ? Variants{
                 TF->getZero(),
@@ -239,62 +236,62 @@ private:
             inFold = false;
             return vars;
 
-    } else if ("tfold" == name) {
+        } else if ("tfold" == name) {
 
-        Variants vars;
-        if (inFold) return vars;
-        inFold = true;
+            Variants vars;
+            if (inFold) return vars;
+            inFold = true;
 
-        // min: 2 + 1 + 1 + 1 = 5
-        if (size < 5) return vars;
+            // min: 2 + 1 + 1 + 1 = 5
+            if (size < 5) return vars;
 
-        auto bodys = size - 1 - 1 - 2;
+            auto bodys = size - 1 - 1 - 2;
 
-        auto e0 = TF->getArgumentTerm(0);
-        auto e1 = TF->getZero();
-        auto body = generate(bodys);
+            auto e0 = TF->getArgumentTerm(0);
+            auto e1 = TF->getZero();
+            auto body = generate(bodys);
 
-        for (const auto& b : body) {
-            vars.push_back(
-                TF->getTFoldTerm(e0, e1, b)
-            );
-        }
+            for (const auto& b : body) {
+                vars.push_back(
+                    TF->getTFoldTerm(e0, e1, b)
+                );
+            }
 
-        inFold = false;
-        return vars;
+            inFold = false;
+            return vars;
 
-    } else if ("if0" == name) {
+        } else if ("if0" == name) {
 
-        Variants vars;
+            Variants vars;
 
-        // min: 1 + 1 + 1 + 1 = 4
-        if (size < 4) return vars;
+            // min: 1 + 1 + 1 + 1 = 4
+            if (size < 4) return vars;
 
-        for (auto trus = 1; trus < size; ++trus) {
-            for (auto flss = 1; flss < size - trus; ++flss) {
-                auto cnds = size - trus - flss - 1;
+            for (auto trus = 1; trus < size; ++trus) {
+                for (auto flss = 1; flss < size - trus; ++flss) {
+                    auto cnds = size - trus - flss - 1;
 
-                if (cnds <= 0) continue;
+                    if (cnds <= 0) continue;
 
-                auto cnd = generate(cnds);
-                auto tru = generate(trus);
-                auto fls = generate(flss);
+                    auto cnd = generate(cnds);
+                    auto tru = generate(trus);
+                    auto fls = generate(flss);
 
-                for (const auto& c : cnd) {
-                    for (const auto& t : tru) {
-                        for (const auto& f : fls) {
-                            vars.push_back(
-                                TF->getTernaryTerm(c, t, f)
-                            );
+                    for (const auto& c : cnd) {
+                        for (const auto& t : tru) {
+                            for (const auto& f : fls) {
+                                vars.push_back(
+                                    TF->getTernaryTerm(c, t, f)
+                                );
+                            }
                         }
                     }
                 }
             }
-        }
 
-        return vars;
+            return vars;
 
-    } else {
+        } else {
             ASSERT(false, "Oh shit...");
         }
     }
