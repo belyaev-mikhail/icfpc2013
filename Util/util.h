@@ -8,13 +8,6 @@
 #ifndef UTIL_H_
 #define UTIL_H_
 
-#include <llvm/Analysis/LoopInfo.h>
-#include <llvm/Constants.h>
-#include <llvm/Function.h>
-#include <llvm/Instructions.h>
-#include <llvm/Support/raw_ostream.h>
-#include <llvm/Value.h>
-
 #include <list>
 #include <string>
 
@@ -22,20 +15,12 @@
 #include "Util/enums.hpp"
 #include "Util/hash.hpp"
 #include "Util/iterators.hpp"
-#include "Util/locations.h"
 #include "Util/meta.hpp"
 #include "Util/option.hpp"
 #include "Util/streams.hpp"
 #include "Util/util.hpp"
 
 namespace llvm {
-
-// copy the standard ostream behavior with functions
-llvm::raw_ostream& operator<<(
-		llvm::raw_ostream& ost,
-		llvm::raw_ostream& (*op)(llvm::raw_ostream&));
-
-llvm::raw_ostream& operator<<(llvm::raw_ostream& OS, const llvm::Type& T);
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -119,7 +104,6 @@ enum class ArithType {
     ASHR = 11,
     LSHR = 12
 };
-ArithType arithType(llvm::BinaryOperator::BinaryOps llops);
 std::string arithString(ArithType opCode);
 
 /** protobuf -> Util/UnaryArithType.proto
@@ -139,40 +123,6 @@ enum class UnaryArithType {
 };
 std::string unaryArithString(UnaryArithType opCode);
 
-////////////////////////////////////////////////////////////////////////////////
-
-llvm::Constant* getBoolConstant(bool b);
-llvm::Constant* getIntConstant(uint64_t i);
-llvm::ConstantPointerNull* getNullPointer();
-
-std::list<Loop*> getAllLoops(Function* F, LoopInfo* LI);
-Loop* getLoopFor(Instruction* Inst, LoopInfo* LI);
-
-std::list<ReturnInst*> getAllRets(Function* F);
-
-////////////////////////////////////////////////////////////////////////////////
-
-inline borealis::Locus instructionLocus(const Instruction* inst) {
-    auto node = inst->getMetadata("dbg");
-    if (node) return DILocation(node);
-    else return borealis::Locus();
-}
-
-inline std::string valueSummary(const Value* v) {
-    if (!v) {
-        return "<nullptr>";
-    } else if (auto* f = llvm::dyn_cast<Function>(v)) {
-        return ("function " + f->getName()).str();
-    } else if (auto* bb = llvm::dyn_cast<BasicBlock>(v)) {
-        return ("basic block " + bb->getName()).str();
-    } else if (auto* i = llvm::dyn_cast<Instruction>(v)) {
-        return borealis::util::toString(*i).c_str()+2;
-    } else return borealis::util::toString(*v);
-}
-
-inline std::string valueSummary(const Value& v) {
-    return valueSummary(&v);
-}
 
 } // namespace llvm
 
@@ -188,12 +138,6 @@ std::string nochar(std::string&& v, char c);
 
 std::string& replace(const std::string& from, const std::string& to, std::string& in);
 
-namespace streams {
-
-// copy the standard ostream endl
-llvm::raw_ostream& endl(llvm::raw_ostream& ost);
-
-} // namespace streams
 } // namespace util
 } // namespace borealis
 

@@ -8,14 +8,6 @@
 #ifndef STREAMS_HPP_
 #define STREAMS_HPP_
 
-#include <clang/AST/Decl.h>
-#include <llvm/Module.h>
-#include <llvm/Pass.h>
-#include <llvm/Support/Casting.h>
-#include <llvm/Support/raw_ostream.h>
-#include <llvm/Type.h>
-#include <llvm/Value.h>
-
 #include <iostream>
 #include <set>
 #include <sstream>
@@ -29,24 +21,6 @@
 namespace borealis {
 namespace util {
 
-template<class T>
-struct is_using_llvm_output {
-    enum { value =
-            std::is_base_of<clang::Decl, T>::value ||
-            std::is_base_of<llvm::Value, T>::value ||
-            std::is_base_of<llvm::Type, T>::value ||
-            std::is_base_of<llvm::StringRef, T>::value ||
-            std::is_base_of<llvm::Twine, T>::value ||
-            std::is_base_of<llvm::Module, T>::value ||
-            std::is_base_of<llvm::Pass, T>::value
-    };
-};
-
-template<class T>
-struct UseLLVMOstreams {
-    enum { value = is_using_llvm_output<T>::value };
-};
-
 template<class T, bool UseLLVMOstream = false>
 struct Stringifier;
 
@@ -54,16 +28,6 @@ template<class T>
 struct Stringifier<T, false> {
     static std::string toString(const T& t) {
         std::ostringstream oss;
-        oss << t;
-        return oss.str();
-    }
-};
-
-template<class T>
-struct Stringifier<T, true> {
-    static std::string toString(const T& t) {
-        std::string buf;
-        llvm::raw_string_ostream oss(buf);
         oss << t;
         return oss.str();
     }
@@ -93,7 +57,7 @@ struct Stringifier<const char*> {
 
 template<class T>
 inline std::string toString(const T& t) {
-    return Stringifier<T, UseLLVMOstreams<T>::value>::toString(t);
+    return Stringifier<T>::toString(t);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -127,22 +91,6 @@ std::string with_stream(Func f) {
     std::ostringstream ost;
     f(ost);
     return ost.str();
-}
-
-template<class Func>
-std::string with_llvm_stream(Func f) {
-    std::string buf;
-    llvm::raw_string_ostream ost(buf);
-    f(ost);
-    return ost.str();
-}
-
-template<class T>
-std::ostream& output_using_llvm(std::ostream& ost, const T& val) {
-    std::string buf;
-    llvm::raw_string_ostream ostt(buf);
-    ostt << val;
-    return ost << ostt.str();
 }
 
 } // namespace streams
@@ -277,45 +225,6 @@ Streamer& operator<<(Streamer& s, const std::unordered_map<K, V>& map) {
 
 } // namespace std
 
-////////////////////////////////////////////////////////////////////////////////
-//
-// llvm
-//
-////////////////////////////////////////////////////////////////////////////////
-
-namespace llvm {
-
-inline raw_ostream& operator<<(raw_ostream& ost, const Pass& pass) {
-    pass.print(ost, nullptr);
-    return ost;
-}
-
-template<class T, class Check = GUARD(borealis::util::is_using_llvm_output<T>::value)>
-std::ostream& operator<<(std::ostream& ost, const T& llvm_val) {
-    return borealis::util::streams::output_using_llvm(ost, llvm_val);
-}
-
-} // namespace llvm
-
-////////////////////////////////////////////////////////////////////////////////
-//
-// clang
-//
-////////////////////////////////////////////////////////////////////////////////
-
-namespace clang {
-
-inline raw_ostream& operator <<(raw_ostream& ost, const Decl& decl) {
-    decl.print(ost, 0, true);
-    return ost;
-}
-
-template<class T, class Check = GUARD(borealis::util::is_using_llvm_output<T>::value)>
-std::ostream& operator<<(std::ostream& ost, const T& llvm_val) {
-    return borealis::util::streams::output_using_llvm(ost, llvm_val);
-}
-
-} // namespace clang
 
 #include "Util/unmacros.h"
 

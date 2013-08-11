@@ -87,6 +87,20 @@ struct hash<const borealis::Term::Ptr> {
 };
 } // namespace std
 
+namespace llvm {
+    template<class T, class F>
+    T* dyn_cast_or_null(F* from) {
+        if(T::classof(from)) return static_cast<T*>(from);
+        else return nullptr;
+    }
+
+    template<class T, class F>
+    const T* dyn_cast_or_null(const F* from) {
+        if(T::classof(from)) return static_cast<const T*>(from);
+        else return nullptr;
+    }
+}
+
 #define MK_COMMON_TERM_IMPL(CLASS) \
 private: \
     typedef CLASS Self; \
@@ -100,5 +114,7 @@ public: \
     static bool classof(const Term* t) { \
         return t->getClassTag() == class_tag<Self>(); \
     }
+
+
 
 #endif /* TERM_H_ */

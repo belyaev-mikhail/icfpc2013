@@ -8,8 +8,6 @@
 #ifndef UTIL_HPP_
 #define UTIL_HPP_
 
-#include <llvm/Support/ManagedStatic.h>
-
 #include <cstddef>
 
 #include "debugbreak/debugbreak.h"
@@ -38,7 +36,6 @@ RetTy sayonara(const std::string& file, int line, const std::string& where, cons
     errs() << file << ":" << toString(line) << endl
             << "\t" << where << endl
             << "\t" << reason << endl;
-    llvm::llvm_shutdown();
     std::exit(EXIT_FAILURE);
 }
 
@@ -153,34 +150,6 @@ std::string join(const Args&... args) {
 
 } // naemspace util
 } // naemspace borealis
-
-namespace llvm {
-template<class To>
-struct dyn_caster {
-    template<class From>
-    auto operator()(const From& from) QUICK_CONST_RETURN(dyn_cast<To>(from));
-};
-
-template<class To>
-struct isaer {
-    template<class From>
-    auto operator()(const From& from) QUICK_CONST_RETURN(isa<To>(from));
-};
-
-template<class T> struct simplify_type< std::shared_ptr<T> > {
-    typedef T* SimpleType;
-    static SimpleType getSimplifiedValue(const std::shared_ptr<T>& Val) {
-        return Val.get();
-    }
-};
-
-template<class T> struct simplify_type< const std::shared_ptr<T> > {
-    typedef T* SimpleType;
-    static SimpleType getSimplifiedValue(const std::shared_ptr<T>& Val) {
-        return Val.get();
-    }
-};
-} // namespace llvm
 
 #include "Util/unmacros.h"
 
